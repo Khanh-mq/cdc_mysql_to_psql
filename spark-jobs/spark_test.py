@@ -1,5 +1,5 @@
-
-
+from psycopg2 import pool
+import psycopg2
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType
@@ -18,6 +18,14 @@ postgres_conf = config['postgres']
 spark_conf = config['spark']
 schema_conf = config['schema']
 
+
+postgeres_pool = pool.SimpleConnectionPool(
+    minconn=1,
+    maxconn=10,
+    dsn=postgres_conf['url'].replace("jdbc:", ""),
+    user=postgres_conf['user'],
+    password=postgres_conf['password']
+)
 
 
 # ---build schema dynamically from config---
@@ -92,13 +100,21 @@ def process_batch(batch_df, batch_id):
     deletes = batch_df.filter(col("op") == "d") \
         .select("before.id")
 
-    if deletes.head(1):
-        deletes.createOrReplaceTempView("tmp_delete")
-        spark.sql(f"""
-            DELETE FROM {postgres_conf['table']}
-            WHERE id IN (SELECT id FROM tmp_delete)
-        """)
-        logging.info(f'Deleted {deletes.count()} records')
+    print(f'deletes count: {deletes.count()}')
+    ids  = [row['id'] for row in deletes.collect()]
+
+    if ids:
+        logging.info(f'Preparing to delete {len(ids)} records with IDs: {ids}')
+        conn  = postgeres_pool.getconn()
+        query = "DELETE FROM public.users WHERE id IN %s"
+
+        with conn.cursor() as cur :
+            cur.execute(query, (tuple(ids),))
+        conn.commit()
+        conn.close()
+        logging.info(f'Deleted {len(ids)} records with IDs: {ids}')
+
+
 
 # Write stream with foreachBatch
 query = df_json.writeStream \

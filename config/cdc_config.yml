@@ -2,7 +2,7 @@ kafka:
   bootstrap_servers: kafka:9092
   topic: "mysql_server.source_db.users"
   group_id: 'cdc-consumer-group'
-  maxOffsetsPerTrigger: 1000
+  maxOffsetsPerTrigger: 500
   minPartitions: 8
   startingOffsets: "earliest"
 
