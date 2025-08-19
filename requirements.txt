@@ -1,0 +1,6 @@
+pyspark==3.4.0 
+findspark
+kafka-python
+mysql.connector
+pymysql
+yaml

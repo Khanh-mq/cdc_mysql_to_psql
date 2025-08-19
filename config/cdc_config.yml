@@ -1,0 +1,38 @@
+kafka:
+  bootstrap_servers: kafka:9092
+  topic: "mysql_server.source_db.users"
+  group_id: 'cdc-consumer-group'
+  maxOffsetsPerTrigger: 1000
+  minPartitions: 8
+  startingOffsets: "earliest"
+
+
+
+postgres:
+  url: 'jdbc:postgresql://postgres:5432/target_db'
+  user: 'postgresuser'
+  password: 'postgrespass'
+  table: 'public.users'
+  driver: 'org.postgresql.Driver'
+  bacthSize: 10000
+
+
+spark:
+  master: "spark://spark:7077"
+  appName: "cdc_mysql_to_postgres"
+  executorMemory: "2g"
+  exectutorCores: 2 
+  defaultParallelism: 8
+  shufflePartitions: 8
+  checkpointLocation: "/tmp/checkpoint"
+
+schema:
+  columns:
+    - name: id
+      type: IntegerType
+    - name: name
+      type: StringType
+    - name: email
+      type: StringType
+    - name: created_at
+      type: TimestampType
