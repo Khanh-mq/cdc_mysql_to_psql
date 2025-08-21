@@ -15,7 +15,7 @@ conn = pymysql.connect(
 cursor = conn.cursor()
 
 batch_size = 1000
-total_records = 100_000
+total_records = 10_000
 
 for i in range(1, total_records + 1, batch_size):
     values = [(f'user{j}', f'user{j}@email.com') for j in range(i, min(i + batch_size, total_records + 1))]

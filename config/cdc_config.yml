@@ -14,7 +14,7 @@ postgres:
   password: 'postgrespass'
   table: 'public.users'
   driver: 'org.postgresql.Driver'
-  bacthSize: 10000
+  batchSize: 10000
 
 
 spark:

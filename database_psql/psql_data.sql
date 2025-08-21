@@ -5,6 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO users (name, email) VALUES
-    ('User A', 'a@example.com'),
-    ('User B', 'b@example.com');
+
+
+ 

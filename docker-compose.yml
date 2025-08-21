@@ -83,27 +83,56 @@ services:
 
   spark:
     image: bitnami/spark:3.5.1
+    container_name: spark
     environment:
       - SPARK_MODE=master
-      - SPARK_MASTER_HOST=0.0.0.0 
+      - SPARK_MASTER_HOST=spark
       - SPARK_MASTER_PORT=7077
       - SPARK_MASTER_WEBUI_PORT=8080
       - SPARK_WORKER_MEMORY=2G
       - SPARK_WORKER_CORES=4
+      
     ports:
       - "8080:8080"
       - "7077:7077"
     volumes:
       - ./spark-jobs:/spark-jobs
       - ./config:/config
-      - ./jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
+      - ./jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
       - ./jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
       - ./jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar
       - ./jars/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar
+      - ./jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
       - ./jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar
       - ./jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar
-      - ./jars/commons-pool2-2.12.0.jar:/opt/bitnami/spark/jars/commons-pool2-2.12.0.jar
+    networks:
+      - cdc-network
       
+
+
+  
+  spark-worker:
+    image: bitnami/spark:3.5.1
+    container_name: spark-worker
+
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+    volumes:
+      - ./spark-jobs:/spark-jobs
+      - ./config:/config
+      - ./jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
+      - ./jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
+      - ./jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar
+      - ./jars/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar
+      - ./jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
+      - ./jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar
+      - ./jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar
+    depends_on:
+      - spark
+    
     networks:
       - cdc-network
     

@@ -1,5 +1,4 @@
 from psycopg2 import pool
-import psycopg2
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType
@@ -21,7 +20,7 @@ schema_conf = config['schema']
 
 postgeres_pool = pool.SimpleConnectionPool(
     minconn=1,
-    maxconn=10,
+    maxconn=20,
     dsn=postgres_conf['url'].replace("jdbc:", ""),
     user=postgres_conf['user'],
     password=postgres_conf['password']
@@ -42,7 +41,6 @@ schema =  StructType([
     StructField("ts_ms", StringType())
 ])
 
-# -------------Initialize Spark session----------
 spark = SparkSession.builder \
     .appName(spark_conf['appName']) \
     .master(spark_conf['master']) \
@@ -51,12 +49,12 @@ spark = SparkSession.builder \
     .config("spark.default.parallelism", spark_conf['defaultParallelism']) \
     .config('spark.sql.shuffle.partitions', spark_conf['shufflePartitions']) \
     .config("spark.streaming.stopGracefullyOnShutdown", "true") \
+    .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true") \
+    .config("spark.driver.extraClassPath", "/opt/bitnami/spark/jars/postgresql-42.7.3.jar") \
+    .config("spark.executor.extraClassPath", "/opt/bitnami/spark/jars/postgresql-42.7.3.jar") \
     .getOrCreate()
 
 logging.info("spark seeesion initialized")
-
-
-
 
 
 
@@ -91,7 +89,7 @@ def process_batch(batch_df, batch_id):
             .option("user", postgres_conf['user']) \
             .option("password", postgres_conf['password']) \
             .option("driver", postgres_conf['driver']) \
-            .option("batchsize", postgres_conf['bacthSize']) \
+            .option("batchsize", postgres_conf['batchSize']) \
             .mode("append") \
             .save()
     logging.info(f'Inserted/Updated {inserts_updates.count()} records')
@@ -103,16 +101,27 @@ def process_batch(batch_df, batch_id):
     print(f'deletes count: {deletes.count()}')
     ids  = [row['id'] for row in deletes.collect()]
 
-    if ids:
-        logging.info(f'Preparing to delete {len(ids)} records with IDs: {ids}')
-        conn  = postgeres_pool.getconn()
-        query = "DELETE FROM public.users WHERE id IN %s"
+    if not ids:
+        return
 
-        with conn.cursor() as cur :
-            cur.execute(query, (tuple(ids),))
+    logging.info(f'Preparing to delete {len(ids)} records with IDs: {ids}')
+    conn = None
+    try:
+        conn = postgeres_pool.getconn()
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            # dùng ANY cho list
+            cur.execute("DELETE FROM public.users WHERE id = ANY(%s)", (ids,))
         conn.commit()
-        conn.close()
-        logging.info(f'Deleted {len(ids)} records with IDs: {ids}')
+        logging.info(f'Deleted {len(ids)} records')
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        logging.exception("Delete failed")
+        raise
+    finally:
+        if conn:
+            postgeres_pool.putconn(conn)  
 
 
 
@@ -120,7 +129,7 @@ def process_batch(batch_df, batch_id):
 query = df_json.writeStream \
     .foreachBatch(process_batch) \
     .option("checkpointLocation", spark_conf['checkpointLocation']) \
-    .trigger(processingTime="2 seconds") \
+    .trigger(processingTime="3 seconds") \
     .start()
 
 # Wait for termination

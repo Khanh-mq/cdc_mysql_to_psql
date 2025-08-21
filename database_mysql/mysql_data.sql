@@ -9,11 +9,6 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Chèn dữ liệu mẫu
-INSERT INTO users (name, email) VALUES
-    ('Test User 1', 'user1@example.com'),
-    ('Test User 2', 'user2@example.com');
-
 
 -- tao một cái procedure để chèn user vào nhanh hơn COMMENT
 DELIMITER //
