@@ -5,7 +5,9 @@ start = time.time()
 
 # Kết nối MySQL bằng PyMySQL
 conn = pymysql.connect(
-    host='project_cdc_mysql_to_postgres-mysql-1',  # chú ý: dùng '-' chứ không phải '_'
+    # host='project_cdc_mysql_to_postgres-mysql-1',  # chú ý: dùng '-' chứ không phải '_'
+    host='127.0.0.1',  # chú ý: dùng '-' chứ không phải '_'
+
     database='source_db',
     user='root',
     password='root',

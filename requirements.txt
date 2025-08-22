@@ -1,6 +1,7 @@
-pyspark==3.4.0 
-findspark
-kafka-python
-mysql.connector
+# pyspark==3.4.0 
+# findspark
+# kafka-python
+# mysql.connector
 pymysql
-yaml
+pyyaml
+spycopg2-binary
