@@ -29,6 +29,27 @@ services:
     networks:
       - cdc-network
 
+
+  # Kafka Exporter
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    command: 
+      - "--kafka.server=kafka:9092"
+    ports:
+      - "9308:9308"
+    networks:
+      - cdc-network
+    depends_on:
+      - kafka
+    restart: on-failure
+
+
+
+
+
+
+    
+
   mysql:
     image: mysql:8.0
     environment:
@@ -46,6 +67,26 @@ services:
     networks:
       - cdc-network
 
+
+
+
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.17.0
+    command:
+      - "--config.my-cnf=/etc/mysql/.my.cnf"
+    volumes:
+      - ./database_mysql/.my.cnf:/etc/mysql/.my.cnf:ro
+    ports:
+      - "9104:9104"
+    depends_on:
+      - mysql
+    networks:
+      - cdc-network
+
+
+
+
+
   postgres:
     image: postgres:14
     environment:
@@ -59,6 +100,21 @@ services:
       - postgres-data:/var/lib/postgresql/data
     networks:
       - cdc-network
+
+
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgresuser:postgrespass@postgres:5432/target_db?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+    networks:
+      - cdc-network
+
+    
 
   kafka-connect:
     image: debezium/connect:2.7.0.Final
@@ -93,11 +149,13 @@ services:
       - SPARK_MASTER_WEBUI_PORT=8080
       - SPARK_WORKER_MEMORY=2G
       - SPARK_WORKER_CORES=4
-      
+      - SPARK_DAEMON_JAVA_OPTS=-javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/jmx_exporter/config.yaml
     ports:
       - "8080:8080"
       - "7077:7077"
     volumes:
+      - ./checkpoint:/tmp/checkpoint
+      - ./jmx_exporter:/jmx_exporter
       - ./spark-jobs:/spark-jobs
       - ./config:/config
       - ./jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
@@ -122,6 +180,7 @@ services:
       - SPARK_MASTER_URL=spark://spark:7077
       - SPARK_WORKER_MEMORY=2G
       - SPARK_WORKER_CORES=2
+      - SPARK_DAEMON_JAVA_OPTS=-javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/jmx_exporter/config.yaml
     volumes:
       - ./spark-jobs:/spark-jobs
       - ./config:/config
@@ -132,9 +191,9 @@ services:
       - ./jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
       - ./jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar
       - ./jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar
+      - ./jmx_exporter:/jmx_exporter
     depends_on:
       - spark
-    
     networks:
       - cdc-network
 

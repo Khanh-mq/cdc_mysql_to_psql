@@ -9,6 +9,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE USER IF NOT EXISTS 'mysqluser'@'%' IDENTIFIED BY 'mysqlpass';
+GRANT ALL PRIVILEGES ON source_db.* TO 'mysqluser'@'%';
+FLUSH PRIVILEGES;
+
 
 -- tao một cái procedure để chèn user vào nhanh hơn COMMENT
 DELIMITER //

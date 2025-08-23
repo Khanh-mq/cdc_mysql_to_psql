@@ -4,4 +4,4 @@
 # mysql.connector
 pymysql
 pyyaml
-spycopg2-binary
+psycopg2-binary
