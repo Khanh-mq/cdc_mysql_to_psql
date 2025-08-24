@@ -1,6 +1,7 @@
 kafka:
   bootstrap_servers: kafka:9092
-  topic: "mysql_server.source_db.users"
+  topic_user: "mysql_server.source_db.users"
+  topic_nyc_taxi: "mysql_server.source_db.nyc_taxi"
   group_id: 'cdc-consumer-group'
   maxOffsetsPerTrigger: 500
   minPartitions: 8
@@ -12,7 +13,8 @@ postgres:
   url: 'jdbc:postgresql://postgres:5432/target_db'
   user: 'postgresuser'
   password: 'postgrespass'
-  table: 'public.users'
+  table_users: 'public.users'
+  table_nyc_taxi: 'public.nyc_taxi'
   driver: 'org.postgresql.Driver'
   batchSize: 10000
 
@@ -26,7 +28,7 @@ spark:
   shufflePartitions: 8
   checkpointLocation: "/tmp/checkpoint"
 
-schema:
+schema_users:
   columns:
     - name: id
       type: IntegerType
@@ -36,3 +38,45 @@ schema:
       type: StringType
     - name: created_at
       type: TimestampType
+
+
+schema_nyc_taxi:
+  columns:
+    - name: vendor_id 
+      type: IntegerType
+    - name: pickup_datetime
+      type: TimestampType
+    - name: dropoff_datetime
+      type: TimestampType
+    - name: passenger_count
+      type: FloatType
+    - name: trip_distance
+      type: FloatType
+    - name: rate_code_id
+      type: FloatType
+    - name: store_and_fwd_flag
+      type: StringType
+    - name: payment_type
+      type: IntegerType
+    - name: fare_amount
+      type: FloatType
+    - name: extra
+      type: FloatType
+    - name: mta_tax
+      type: FloatType
+    - name: tip_amount
+      type: FloatType
+    - name: tolls_amount
+      type: FloatType
+    - name: improvement_surcharge
+      type: FloatType
+    - name: total_amount
+      type: FloatType
+    - name: congestion_surcharge
+      type: FloatType
+    - name: airport_fee
+      type: FloatType
+    - name: pickup_location_id
+      type: IntegerType
+    - name: dropoff_location_id
+      type: IntegerType

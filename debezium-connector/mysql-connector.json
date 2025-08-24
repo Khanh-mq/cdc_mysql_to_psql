@@ -9,7 +9,7 @@
       "database.server.id": "12345",
       "topic.prefix": "mysql_server",
       "database.include.list": "source_db",
-      "table.include.list": "source_db.users",
+      "table.include.list": "source_db.users ,  source_db.nyc_taxi",
       "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
       "schema.history.internal.kafka.topic": "schema-changes.source_db",
       "key.converter": "org.apache.kafka.connect.json.JsonConverter",

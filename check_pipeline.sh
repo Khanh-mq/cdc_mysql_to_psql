@@ -4,7 +4,8 @@ PROJECT_DIR="/mnt/winpart/Khanh/project_cdc_mysql_to_postgres"
 KAFKA_CONNECT_CONTAINER="project_cdc_mysql_to_postgres-kafka-connect-1"
 MYSQL_CONTAINER="project_cdc_mysql_to_postgres-mysql-1"
 KAFKA_BOOTSTRAP="kafka:9092"
-TOPIC="mysql_server.source_db.users"
+TOPIC_USERS="mysql_server.source_db.users"
+TOPIC_NYC_TAXI="mysql_server.source_db.nyc_taxi"
 HISTORY_TOPIC="schema-changes.source_db"
 
 
@@ -79,8 +80,14 @@ docker exec -it $KAFKA_CONNECT_CONTAINER curl -s -X GET http://localhost:8083/co
 
 
 # 6. Check data in topic
-print_header "Checking Data in Topic $TOPIC"
-docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-console-consumer.sh --bootstrap-server $KAFKA_BOOTSTRAP --topic $TOPIC --from-beginning --max-messages 50 --timeout-ms 10000 || {
+print_header "Checking Data in Topic $TOPIC_USERS"
+docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-console-consumer.sh --bootstrap-server $KAFKA_BOOTSTRAP --topic $TOPIC_USERS --from-beginning --max-messages 50 --timeout-ms 10000 || {
+  echo -e "${RED}ERROR: Failed to consume messages from $TOPIC. Topic may be empty or consumer timed out.${NC}"
+}
+
+# 6. Check data in topic
+print_header "Checking Data in Topic $TOPIC_NYC_TAXI"
+docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-console-consumer.sh --bootstrap-server $KAFKA_BOOTSTRAP --topic $TOPIC_NYC_TAXI --from-beginning --max-messages 50 --timeout-ms 10000 || {
   echo -e "${RED}ERROR: Failed to consume messages from $TOPIC. Topic may be empty or consumer timed out.${NC}"
 }
 
@@ -91,6 +98,11 @@ docker exec -it $MYSQL_CONTAINER mysql -u root -proot -e "SELECT count(*) FROM s
   echo -e "${RED}ERROR: Failed to query source_db.users. Ensure table exists and root has access.${NC}"
 }
 
+# 7.1 : check mysql data in  source_db.nyc_taxi
+print_header "Checking MySQL Data in source_db.nyc_taxi"
+docker exec -it $MYSQL_CONTAINER mysql -u root -proot -e "SELECT count(*) FROM source_db.nyc_taxi;" || {
+  echo -e "${RED}ERROR: Failed to query source_db.nyc_taxi. Ensure table exists and root has access.${NC}"
+}
 
 
 # 8. Check Kafka Connect logs (last 20 lines)

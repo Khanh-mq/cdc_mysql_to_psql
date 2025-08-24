@@ -84,7 +84,14 @@ services:
       - cdc-network
 
 
-
+    
+  adminer:
+    image: adminer
+    container_name: adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - cdc-network
 
 
   postgres:
