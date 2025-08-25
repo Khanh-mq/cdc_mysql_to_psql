@@ -62,7 +62,6 @@ services:
     volumes:
       - ./database_mysql/mysql_data.sql:/docker-entrypoint-initdb.d/mysql_data.sql
       - mysql-data:/var/lib/mysql
-      - ./data_insert/insert_one_million.py:/data_insert/insert_one_million.py
     command: --log-bin=mysql-bin --binlog-format=ROW --server-id=1
     networks:
       - cdc-network

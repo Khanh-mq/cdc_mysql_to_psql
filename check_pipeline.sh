@@ -55,7 +55,7 @@ docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --list --boo
 print_header "Checking Kafka Topic dbhistory.source_db"
 docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --list --bootstrap-server $KAFKA_BOOTSTRAP | grep $HISTORY_TOPIC || {
   echo -e "${YELLOW}WARNING: Topic $HISTORY_TOPIC not found. Creating it...${NC}"
-  docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --create --bootstrap-server $KAFKA_BOOTSTRAP --topic $HISTORY_TOPIC --partitions 1 --replication-factor 1
+  docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --create --bootstrap-server $KAFKA_BOOTSTRAP --topic $HISTORY_TOPIC --partitions 3 --replication-factor 2
 }
 
 # #4.1.delete  connect kafka

@@ -3,7 +3,7 @@ kafka:
   topic_user: "mysql_server.source_db.users"
   topic_nyc_taxi: "mysql_server.source_db.nyc_taxi"
   group_id: 'cdc-consumer-group'
-  maxOffsetsPerTrigger: 500
+  maxOffsetsPerTrigger: 2000
   minPartitions: 8
   startingOffsets: "earliest"
 
@@ -42,20 +42,26 @@ schema_users:
 
 schema_nyc_taxi:
   columns:
-    - name: vendor_id 
+    - name: id
       type: IntegerType
-    - name: pickup_datetime
+    - name: VendorID
+      type: IntegerType
+    - name: tpep_pickup_datetime
       type: TimestampType
-    - name: dropoff_datetime
+    - name: tpep_dropoff_datetime
       type: TimestampType
     - name: passenger_count
       type: FloatType
-    - name: trip_distance
+    - name: RatecodeID
       type: FloatType
-    - name: rate_code_id
+    - name: trip_distance
       type: FloatType
     - name: store_and_fwd_flag
       type: StringType
+    - name: PULocationID
+      type: IntegerType
+    - name: DOLocationID
+      type: IntegerType
     - name: payment_type
       type: IntegerType
     - name: fare_amount
@@ -74,9 +80,7 @@ schema_nyc_taxi:
       type: FloatType
     - name: congestion_surcharge
       type: FloatType
-    - name: airport_fee
+    - name: Airport_fee
       type: FloatType
-    - name: pickup_location_id
-      type: IntegerType
-    - name: dropoff_location_id
-      type: IntegerType
+    - name: created_at
+      type: TimestampType

@@ -10,9 +10,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS nyc_taxi (
+    id INT PRIMARY KEY AUTO_INCREMENT,
     VendorID INT COMMENT 'Vendor ID (1 = Creative Mobile Technologies, LLC; 2 = VeriFone Inc.)',
-    tpep_pickup_datetime DATETIME COMMENT 'Pickup datetime',
-    tpep_dropoff_datetime DATETIME COMMENT 'Dropoff datetime',
+    tpep_pickup_datetime TIMESTAMP COMMENT 'Pickup datetime',
+    tpep_dropoff_datetime TIMESTAMP COMMENT 'Dropoff datetime',
     passenger_count FLOAT COMMENT 'Number of passengers',
     trip_distance FLOAT COMMENT 'Trip distance in miles',
     RatecodeID FLOAT COMMENT 'Rate code ID',
@@ -28,7 +29,7 @@ CREATE TABLE IF NOT EXISTS nyc_taxi (
     improvement_surcharge FLOAT COMMENT 'Improvement surcharge',
     total_amount FLOAT COMMENT 'Total amount',
     congestion_surcharge FLOAT COMMENT 'Congestion surcharge',
-    Airport_fee FLOAT COMMENT 'Airport fee'
+    Airport_fee FLOAT COMMENT 'Airport fee',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

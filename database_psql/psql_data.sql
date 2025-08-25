@@ -6,9 +6,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS nyc_taxi (
+    id SERIAL PRIMARY KEY,
     VendorID INT,
-    tpep_pickup_datetime DATETIME,
-    tpep_dropoff_datetime DATETIME,
+    tpep_pickup_datetime TIMESTAMP,
+    tpep_dropoff_datetime TIMESTAMP,
     passenger_count FLOAT,
     trip_distance FLOAT,
     RatecodeID FLOAT,
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS nyc_taxi (
     improvement_surcharge FLOAT,
     total_amount FLOAT,
     congestion_surcharge FLOAT,
-    Airport_fee FLOAT
+    Airport_fee FLOAT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
