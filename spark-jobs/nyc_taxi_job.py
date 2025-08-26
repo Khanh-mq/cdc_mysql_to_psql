@@ -55,6 +55,7 @@ spark = SparkSession.builder \
     .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true") \
     .config("spark.driver.extraClassPath", "/opt/bitnami/spark/jars/postgresql-42.7.3.jar") \
     .config("spark.executor.extraClassPath", "/opt/bitnami/spark/jars/postgresql-42.7.3.jar") \
+    .config("spark.streaming.stopGracefullyOnShutdown", "true") \
     .getOrCreate()
 
 logging.info("spark seeesion initialized")
@@ -66,9 +67,10 @@ df = spark.readStream \
     .option("maxOffsetsPerTrigger", kafka_conf['maxOffsetsPerTrigger']) \
     .option("minPartitions", kafka_conf['minPartitions']) \
     .option("startingOffsets", kafka_conf['startingOffsets']) \
+    .option("group.id" , kafka_conf['group_id']) \
     .load()
 
-
+df = df.repartition(12, df.key)
 
 df_json = df.selectExpr("CAST(value AS STRING) as json")\
             .select(from_json(col("json"), schema).alias("data")) \
@@ -76,9 +78,9 @@ df_json = df.selectExpr("CAST(value AS STRING) as json")\
 
 
 def process_batch(batch_df, batch_id):
-    logging.info(f"Processing batch {batch_id}")
+    # logging.info(f"Processing batch {batch_id}")
 
-    logging.info(f'processing batch {batch_id} with {batch_df.count()} records')
+    # logging.info(f'processing batch {batch_id} with {batch_df.count()} records')
 
     # Handle INSERT + UPDATE
     inserts_updates = batch_df.filter(col("op").isin("c", "u")) \
@@ -131,7 +133,7 @@ def process_batch(batch_df, batch_id):
 query =  df_json.writeStream \
     .foreachBatch(process_batch) \
     .option("checkpointLocation", spark_conf['checkpointLocation']+"/nyc_taxi") \
-    .trigger(processingTime="3 seconds") \
+    .trigger(processingTime="5 seconds") \
     .start()
 
 

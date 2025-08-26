@@ -3,9 +3,10 @@ kafka:
   topic_user: "mysql_server.source_db.users"
   topic_nyc_taxi: "mysql_server.source_db.nyc_taxi"
   group_id: 'cdc-consumer-group'
-  maxOffsetsPerTrigger: 2000
+  maxOffsetsPerTrigger: 50000
   minPartitions: 8
   startingOffsets: "earliest"
+  group_id: 'cdc-consumer-group'
 
 
 
@@ -16,7 +17,7 @@ postgres:
   table_users: 'public.users'
   table_nyc_taxi: 'public.nyc_taxi'
   driver: 'org.postgresql.Driver'
-  batchSize: 10000
+  batchSize: 5000
 
 
 spark:

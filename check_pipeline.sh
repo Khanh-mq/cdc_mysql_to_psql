@@ -55,8 +55,33 @@ docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --list --boo
 print_header "Checking Kafka Topic dbhistory.source_db"
 docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --list --bootstrap-server $KAFKA_BOOTSTRAP | grep $HISTORY_TOPIC || {
   echo -e "${YELLOW}WARNING: Topic $HISTORY_TOPIC not found. Creating it...${NC}"
-  docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --create --bootstrap-server $KAFKA_BOOTSTRAP --topic $HISTORY_TOPIC --partitions 3 --replication-factor 2
+  docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --create --bootstrap-server $KAFKA_BOOTSTRAP --topic $HISTORY_TOPIC --partitions 1 --replication-factor 2
 }
+
+# # 4.1 Pre-create user topic with 3 partitions
+# print_header "Checking Kafka Topic $TOPIC_USERS"
+# docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --list --bootstrap-server $KAFKA_BOOTSTRAP | grep $TOPIC_USERS || {
+#   echo -e "${YELLOW}WARNING: Topic $TOPIC_USERS not found. Creating it...${NC}"
+#   docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh \
+#     --create \
+#     --bootstrap-server $KAFKA_BOOTSTRAP \
+#     --topic $TOPIC_USERS \
+#     --partitions 3 \
+#     --replication-factor 2
+# }
+
+
+# # 4.2 Pre-create nyc_taxi topic with 3 partitions
+# print_header "Checking Kafka Topic $TOPIC_NYC_TAXI"
+# docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh --list --bootstrap-server $KAFKA_BOOTSTRAP | grep $TOPIC_NYC_TAXI || {
+#   echo -e "${YELLOW}WARNING: Topic $TOPIC_NYC_TAXI not found. Creating it...${NC}"
+#   docker exec -it $KAFKA_CONNECT_CONTAINER /kafka/bin/kafka-topics.sh \
+#     --create \
+#     --bootstrap-server $KAFKA_BOOTSTRAP \
+#     --topic $TOPIC_NYC_TAXI \
+#     --partitions 3 \
+#     --replication-factor 2
+# }
 
 # #4.1.delete  connect kafka
 
