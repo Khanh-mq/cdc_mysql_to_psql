@@ -1,6 +1,28 @@
-scripts/crawl/data/raw/
-checkpoint/
-jmx_exporter/
-jars/
+# Python virtual env
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE / Editor
 .vscode/
-./venv/
+.idea/
+
+# Spark checkpoint data
+checkpoint/
+
+# Raw data / crawl outputs
+scripts/crawl/data/raw/
+
+# Jars / libs
+jars/
+
+# Monitoring
+jmx_exporter/
+
+# Logs
+*.log
