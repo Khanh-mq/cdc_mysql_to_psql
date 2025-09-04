@@ -38,6 +38,9 @@ CREATE USER IF NOT EXISTS 'mysqluser'@'%' IDENTIFIED BY 'mysqlpass';
 GRANT ALL PRIVILEGES ON source_db.* TO 'mysqluser'@'%';
 FLUSH PRIVILEGES;
 
+
+SET GLOBAL "local_infile" = 1;
+
 -- Thủ tục thêm nhiều users nhanh
 DELIMITER //
 CREATE PROCEDURE add_user(IN i INT)

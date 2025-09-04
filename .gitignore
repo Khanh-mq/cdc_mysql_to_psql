@@ -1,2 +1,6 @@
 scripts/crawl/data/raw/
 checkpoint/
+jmx_exporter/
+jars/
+.vscode/
+./venv/

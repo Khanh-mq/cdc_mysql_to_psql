@@ -7,6 +7,7 @@ kafka:
   minPartitions: 8
   startingOffsets: "earliest"
   group_id: 'cdc-consumer-group'
+  failOnDataLoss: false
 
 
 
@@ -84,4 +85,8 @@ schema_nyc_taxi:
     - name: Airport_fee
       type: FloatType
     - name: created_at
+      type: TimestampType
+    - name: status_delete 
+      type: BooleanType
+    - name: delete_at
       type: TimestampType

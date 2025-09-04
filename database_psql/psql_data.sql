@@ -26,7 +26,9 @@ CREATE TABLE IF NOT EXISTS nyc_taxi (
     total_amount FLOAT,
     congestion_surcharge FLOAT,
     Airport_fee FLOAT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status_delete BOOLEAN DEFAULT FALSE,
+    delete_at TIMESTAMP NULL
 );
 
 

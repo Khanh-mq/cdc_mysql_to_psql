@@ -2,7 +2,7 @@ from math import log
 from psycopg2 import pool
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType ,  FloatType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, TimestampType ,  FloatType , BooleanType
 import yaml
 import logging
 
@@ -31,6 +31,7 @@ type_map = {
     "StringType": StringType(),
     "TimestampType": TimestampType(),
     "FloatType": FloatType()
+    ,"BooleanType": BooleanType()
 }
 
 
@@ -62,6 +63,7 @@ logging.info("spark seeesion initialized")
 
 df = spark.readStream \
     .format("kafka") \
+    .option("failOnDataLoss", kafka_conf["failOnDataLoss"]) \
     .option("kafka.bootstrap.servers", kafka_conf['bootstrap_servers']) \
     .option("subscribe", kafka_conf['topic_nyc_taxi']) \
     .option("maxOffsetsPerTrigger", kafka_conf['maxOffsetsPerTrigger']) \
@@ -98,12 +100,12 @@ def process_batch(batch_df, batch_id):
             .mode("append") \
             .save()
     logging.info(f'Inserted/Updated {inserts_updates.count()} records')
+#  cap nhap lai chuc nang delete tren postgres thay vi xoa di thi dung mot cach khac do la cap nhap lai trang thai cho no 
 
     # Handle DELETE
     deletes = batch_df.filter(col("op") == "d") \
         .select("before.id")
 
-    print(f'deletes count: {deletes.count()}')
     ids  = [row['id'] for row in deletes.collect()]
 
     if not ids:
@@ -116,7 +118,11 @@ def process_batch(batch_df, batch_id):
         conn.autocommit = False
         with conn.cursor() as cur:
             # dùng ANY cho list
-            cur.execute("DELETE FROM public.nyc_taxi WHERE id = ANY(%s)", (ids,))
+            cur.execute("""
+                        update  public.nyc_taxi set status_delete = TRUE, delete_at = CURRENT_TIMESTAMP
+                        where id = ANY(%s)
+                        """, (ids,)
+                        )
         conn.commit()
         logging.info(f'Deleted {len(ids)} records')
     except Exception as e:
@@ -133,7 +139,7 @@ def process_batch(batch_df, batch_id):
 query =  df_json.writeStream \
     .foreachBatch(process_batch) \
     .option("checkpointLocation", spark_conf['checkpointLocation']+"/nyc_taxi") \
-    .trigger(processingTime="5 seconds") \
+    .trigger(processingTime="2 seconds") \
     .start()
 
 
