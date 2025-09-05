@@ -1,0 +1,10 @@
+FROM bitnami/spark:3.5.1
+
+# Cài pip và requirements.txt
+USER root
+COPY requirements.txt /tmp/requirements.txt
+RUN apt-get update && apt-get install -y python3-pip && \
+    pip install --no-cache-dir -r /tmp/requirements.txt && \
+    rm -rf /var/lib/apt/lists/* /tmp/requirements.txt
+
+USER 1001

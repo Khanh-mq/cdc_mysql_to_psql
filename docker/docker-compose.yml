@@ -1,0 +1,249 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.7.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOO_SERVER_JVMFLAGS: -XX:+DisableAttachMechanism
+      ZOO_4LW_COMMANDS_WHITELIST: mntr,conf,stat
+    ports:
+      - "2181:2181"
+    networks:
+      - cdc-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.7.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: true
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    networks:
+      - cdc-network
+
+
+  # Kafka Exporter
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    command: 
+      - "--kafka.server=kafka:9092"
+    ports:
+      - "9308:9308"
+    networks:
+      - cdc-network
+    depends_on:
+      - kafka
+    restart: on-failure
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8082:8080"
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - cdc-network
+
+
+
+
+    
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: source_db
+      MYSQL_USER: mysqluser
+      MYSQL_PASSWORD: mysqlpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database_mysql/mysql_data.sql:/docker-entrypoint-initdb.d/mysql_data.sql
+      - mysql-data:/var/lib/mysql
+    command: --log-bin=mysql-bin --binlog-format=ROW --server-id=1
+    networks:
+      - cdc-network
+
+
+
+
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.17.0
+    command:
+      - "--config.my-cnf=/etc/mysql/.my.cnf"
+    volumes:
+      - ./database_mysql/.my.cnf:/etc/mysql/.my.cnf:ro
+    ports:
+      - "9104:9104"
+    depends_on:
+      - mysql
+    networks:
+      - cdc-network
+
+
+    
+  adminer:
+    image: adminer
+    container_name: adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - cdc-network
+
+
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgresuser
+      POSTGRES_PASSWORD: postgrespass
+      POSTGRES_DB: target_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database_psql/psql_data.sql:/docker-entrypoint-initdb.d/psql_data.sql
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - cdc-network
+
+
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgresuser:postgrespass@postgres:5432/target_db?sslmode=disable"
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+    networks:
+      - cdc-network
+
+    
+
+  kafka-connect:
+    image: debezium/connect:2.7.0.Final
+    depends_on:
+      - kafka
+      - mysql
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: connect-cluster
+      CONFIG_STORAGE_TOPIC: connect-configs
+      OFFSET_STORAGE_TOPIC: connect-offsets
+      STATUS_STORAGE_TOPIC: connect-status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./debezium-connector:/kafka/connect/debezium-connector
+    networks:
+      - cdc-network
+
+  spark:
+    build:
+      context: .
+      dockerfile: Dockerfile.spark
+    container_name: spark
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=4
+      - SPARK_DAEMON_JAVA_OPTS=-javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/jmx_exporter/config.yaml
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+      - "4040:4040"
+    volumes:
+      - ./checkpoint:/tmp/checkpoint
+      - ./jmx_exporter:/jmx_exporter
+      - ./spark-jobs:/spark-jobs
+      - ./config:/config
+      - ./jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
+      - ./jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
+      - ./jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar
+      - ./jars/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar
+      - ./jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
+      - ./jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar
+      - ./jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar
+    networks:
+      - cdc-network
+      
+
+
+  
+  spark-worker:
+    image: bitnami/spark:3.5.1
+    container_name: spark-worker
+
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_DAEMON_JAVA_OPTS=-javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/jmx_exporter/config.yaml
+    volumes:
+      - ./spark-jobs:/spark-jobs
+      - ./config:/config
+      - ./jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
+      - ./jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
+      - ./jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar
+      - ./jars/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar
+      - ./jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
+      - ./jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar
+      - ./jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar
+      - ./jmx_exporter:/jmx_exporter
+    depends_on:
+      - spark
+    networks:
+      - cdc-network
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - cdc-network
+  
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - cdc-network
+    
+  
+
+volumes:
+  mysql-data:
+  postgres-data:
+
+networks:
+  cdc-network:
+    driver: bridge
