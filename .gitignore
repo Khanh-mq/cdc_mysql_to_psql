@@ -26,3 +26,7 @@ jmx_exporter/
 
 # Logs
 *.log
+
+
+#  data caw
+data/
