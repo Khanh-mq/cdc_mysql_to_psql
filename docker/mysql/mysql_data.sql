@@ -33,13 +33,13 @@ CREATE TABLE IF NOT EXISTS nyc_taxi (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tạo user và phân quyền
-CREATE USER IF NOT EXISTS 'mysqluser'@'%' IDENTIFIED BY 'mysqlpass';
-GRANT ALL PRIVILEGES ON source_db.* TO 'mysqluser'@'%';
-FLUSH PRIVILEGES;
+-- -- Tạo user và phân quyền
+-- CREATE USER IF NOT EXISTS 'mysqluser'@'%' IDENTIFIED BY 'mysqlpass';
+-- GRANT ALL PRIVILEGES ON source_db.* TO 'mysqluser'@'%';
+-- FLUSH PRIVILEGES;
 
 
-SET GLOBAL "local_infile" = 1;
+SET GLOBAL local_infile = 1;
 
 -- Thủ tục thêm nhiều users nhanh
 DELIMITER //

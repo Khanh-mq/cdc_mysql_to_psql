@@ -9,7 +9,7 @@ import logging
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-with open('/config/cdc_config.yml', 'r') as file:
+with open('/spark-jobs/config/cdc_config.yml', 'r') as file:
     config = yaml.safe_load(file)
 
 kafka_conf  = config['kafka']

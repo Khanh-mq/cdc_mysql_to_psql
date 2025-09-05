@@ -74,7 +74,7 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - ./database_mysql/mysql_data.sql:/docker-entrypoint-initdb.d/mysql_data.sql
+      - ./mysql/mysql_data.sql:/docker-entrypoint-initdb.d/mysql_data.sql
       - mysql-data:/var/lib/mysql
     command: --log-bin=mysql-bin --binlog-format=ROW --server-id=1
     networks:
@@ -88,7 +88,7 @@ services:
     command:
       - "--config.my-cnf=/etc/mysql/.my.cnf"
     volumes:
-      - ./database_mysql/.my.cnf:/etc/mysql/.my.cnf:ro
+      - ./mysql/.my.cnf:/etc/mysql/.my.cnf:ro
     ports:
       - "9104:9104"
     depends_on:
@@ -116,7 +116,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./database_psql/psql_data.sql:/docker-entrypoint-initdb.d/psql_data.sql
+      - ./postgres/psql_data.sql:/docker-entrypoint-initdb.d/psql_data.sql
       - postgres-data:/var/lib/postgresql/data
     networks:
       - cdc-network
@@ -159,8 +159,8 @@ services:
 
   spark:
     build:
-      context: .
-      dockerfile: Dockerfile.spark
+      context: ..
+      dockerfile: docker/spark/Dockerfile.spark
     container_name: spark
     environment:
       - SPARK_MODE=master
@@ -175,17 +175,17 @@ services:
       - "7077:7077"
       - "4040:4040"
     volumes:
-      - ./checkpoint:/tmp/checkpoint
-      - ./jmx_exporter:/jmx_exporter
-      - ./spark-jobs:/spark-jobs
-      - ./config:/config
-      - ./jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
-      - ./jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
-      - ./jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar
-      - ./jars/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar
-      - ./jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
-      - ./jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar
-      - ./jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar
+      - ../checkpoint:/tmp/checkpoint
+      - ../spark-jobs:/spark-jobs
+      - ../spark-jobs/config:/spark-jobs/config
+      - ./spark/jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
+      - ./spark/jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
+      - ./spark/jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar
+      - ./spark/jars/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar
+      - ./spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
+      - ./spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar
+      - ./spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar
+      - ./spark/jmx_exporter:/jmx_exporter:ro
     networks:
       - cdc-network
       
@@ -203,16 +203,17 @@ services:
       - SPARK_WORKER_CORES=2
       - SPARK_DAEMON_JAVA_OPTS=-javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/jmx_exporter/config.yaml
     volumes:
-      - ./spark-jobs:/spark-jobs
-      - ./config:/config
-      - ./jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
-      - ./jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
-      - ./jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar
-      - ./jars/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar
-      - ./jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
-      - ./jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar
-      - ./jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar
-      - ./jmx_exporter:/jmx_exporter
+      - ../checkpoint:/tmp/checkpoint
+      - ../spark-jobs:/spark-jobs
+      - ../spark-jobs/config:/spark-jobs/config
+      - ./spark/jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
+      - ./spark/jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
+      - ./spark/jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar
+      - ./spark/jars/postgresql-42.7.3.jar:/opt/bitnami/spark/jars/postgresql-42.7.3.jar
+      - ./spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-sql-kafka-0-10_2.12-3.5.1.jar
+      - ./spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-streaming-kafka-0-10_2.12-3.5.1.jar
+      - ./spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar:/opt/bitnami/spark/jars/spark-token-provider-kafka-0-10_2.12-3.5.1.jar
+      - ./spark/jmx_exporter:/jmx_exporter:ro
     depends_on:
       - spark
     networks:
@@ -221,7 +222,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.47.0
     volumes:
-      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
     ports:
       - "9090:9090"
     networks:

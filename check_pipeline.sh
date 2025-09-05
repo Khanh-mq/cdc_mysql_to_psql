@@ -1,8 +1,8 @@
 #!/bin/bash
 
 PROJECT_DIR="/mnt/winpart/Khanh/project_cdc_mysql_to_postgres"
-KAFKA_CONNECT_CONTAINER="project_cdc_mysql_to_postgres-kafka-connect-1"
-MYSQL_CONTAINER="project_cdc_mysql_to_postgres-mysql-1"
+KAFKA_CONNECT_CONTAINER="docker-kafka-connect-1"
+MYSQL_CONTAINER="docker-mysql-1"
 KAFKA_BOOTSTRAP="kafka:9092"
 TOPIC_USERS="mysql_server.source_db.users"
 TOPIC_NYC_TAXI="mysql_server.source_db.nyc_taxi"
