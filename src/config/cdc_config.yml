@@ -6,7 +6,6 @@ kafka:
   maxOffsetsPerTrigger: 50000
   minPartitions: 8
   startingOffsets: "earliest"
-  group_id: 'cdc-consumer-group'
   failOnDataLoss: false
 
 
