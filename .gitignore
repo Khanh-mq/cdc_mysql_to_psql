@@ -15,8 +15,6 @@ __pycache__/
 # Spark checkpoint data
 checkpoint/
 
-# Raw data / crawl outputs
-scripts/crawl/data/raw/
 
 # Jars / libs
 jars/
