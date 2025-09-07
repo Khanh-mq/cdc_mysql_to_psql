@@ -36,7 +36,7 @@ class SparkConfig:
     checkpoint_location: str
 
 @dataclass
-class SchemaColums:
+class SchemaColumn:
     name: str
     type: str
 
@@ -45,5 +45,5 @@ class AppConfig:
     kafka: KafkaConfig
     postgres: PostgresConfig
     spark: SparkConfig
-    schema_nyc_taxi: List[SchemaColums]
-    schema_user: List[SchemaColums]
+    schema_nyc_taxi: List[SchemaColumn]
+    schema_user: List[SchemaColumn]

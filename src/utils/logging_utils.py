@@ -77,7 +77,7 @@ def log_batch_metrics(batch_id: int , metrics: Dict[str , Any]) -> None:
     logger =  logging.getLogger(__name__)
     logger.info(
         f'batch_id: {batch_id} metrics :'
-        f'processed = {metrics.get('processed', 0)}, ',
+        f'processed = {metrics.get("processed", 0)}, ',
         f'inserted = {metrics.get("inserted", 0)}, ',
         f'updated = {metrics.get("updated", 0)}, ',
         f'deleted = {metrics.get("deleted", 0)}, ',

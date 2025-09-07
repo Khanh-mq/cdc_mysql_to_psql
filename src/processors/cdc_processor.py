@@ -15,7 +15,7 @@ class CDCProcessor:
 
 
     @record_batch_metrics
-    def process_cdc_operations(self , batch_df: DataFrame , batch_id :int):
+    def process_cdc_operations(self , batch_df: DataFrame , batch_id :int , metrics: dict):
         """su lý cac thao tác cdc (insert , update , delete)
 
         Args:   
@@ -27,6 +27,7 @@ class CDCProcessor:
             self.__process_deletes(batch_df)
             logger.info(f"Batch {batch_id} processed successfully.")
         except Exception as e:
+            metrics['errors'] += 1 
             logger.error(f"Error processing batch {batch_id}: {str(e)}", exc_info=True)
             raise
     
@@ -43,11 +44,11 @@ class CDCProcessor:
             (upsert_df.write
                 .format('jdbc')
                 .option('url' , self.postgres_config.url)
-                .option('dbtable' , self.postgres_config.table)
+                .option('dbtable' , self.postgres_config.table_nyc_taxi)
                 .option('user' , self.postgres_config.user)
                 .option('password' , self.postgres_config.password)
                 .option('driver' , self.postgres_config.driver)
-                .option('batchsize' , self.postgres_config.batchSize)
+                .option('batchsize' , self.postgres_config.batch_size)
                 .mode('append')
                 .save())
 

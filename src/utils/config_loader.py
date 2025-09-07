@@ -1,6 +1,6 @@
 from typing import Any, Dict
 import yaml
-from src.models.config_models import AppConfig, KafkaConfig, PostgresConfig, SparkConfig, SchemaColums
+from src.models.config_models import AppConfig, KafkaConfig, PostgresConfig, SparkConfig, SchemaColumn
 
 
 def load_config(config_path: str) -> Dict[str, Any]:
@@ -56,6 +56,11 @@ def create_app_config(raw_config: Dict[str, Any]) -> AppConfig:
             default_parallelism=raw_config['spark']['default_parallelism'],
             checkpoint_location=raw_config['spark']['checkpoint_location']
         ),
-        schema_nyc_taxi=[SchemaColums(**col) for col in raw_config['schema_nyc_taxi']],
-        schema_user=[SchemaColums(**col) for col in raw_config['schema_user']] 
+        schema_nyc_taxi=[
+                            SchemaColumn(**col) for col in raw_config['schema_nyc_taxi']['columns']
+                                ],
+        schema_user=[
+                        SchemaColumn(**col) for col in raw_config['schema_user']['columns']
+                    ],
+
     )

@@ -176,8 +176,7 @@ services:
       - "4040:4040"
     volumes:
       - ../checkpoint:/tmp/checkpoint
-      - ../spark-jobs:/spark-jobs
-      - ../spark-jobs/config:/spark-jobs/config
+      - ../src:/app/src
       - ./spark/jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
       - ./spark/jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
       - ./spark/jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar
@@ -204,8 +203,7 @@ services:
       - SPARK_DAEMON_JAVA_OPTS=-javaagent:/jmx_exporter/jmx_prometheus_javaagent.jar=7071:/jmx_exporter/config.yaml
     volumes:
       - ../checkpoint:/tmp/checkpoint
-      - ../spark-jobs:/spark-jobs
-      - ../spark-jobs/config:/spark-jobs/config
+      - ../src:/app/src
       - ./spark/jars/commons-pool2-2.11.1.jar:/opt/bitnami/spark/jars/commons-pool2-2.11.1.jar
       - ./spark/jars/kafka-clients-3.5.1.jar:/opt/bitnami/spark/jars/kafka-clients-3.5.1.jar
       - ./spark/jars/mysql-connector-j-8.0.33.jar:/opt/bitnami/spark/jars/mysql-connector-j-8.0.33.jar

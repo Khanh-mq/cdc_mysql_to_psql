@@ -1,11 +1,10 @@
 from typing import List
 from pyspark.sql.types import StructType , StructField , StringType , IntegerType,  BooleanType , TimestampType , FloatType
-from sqlalchemy import true 
-from src.models.config_models  import SchemaColums
+from src.models.config_models  import SchemaColumn
 
 
 
-def create_nyc_taxi_schema(columns: List[SchemaColums]) -> StructType:
+def create_nyc_taxi_schema(columns: List[SchemaColumn]) -> StructType:
     """tạo schema chp data nyc_taxi 
 
     Args:
@@ -16,11 +15,11 @@ def create_nyc_taxi_schema(columns: List[SchemaColums]) -> StructType:
     """
 
     type_mapping = {
-        "IntegerType" : IntegerType(),
-        "StringType":StringType(),
-        "TimetampType":TimestampType(),
-        "FloatType": FloatType(),
-        "BooleanType": BooleanType()
+    "StringType": StringType(),
+    "IntegerType": IntegerType(),
+    "FloatType": FloatType(),
+    "TimestampType": TimestampType(),
+    "BooleanType": BooleanType()
     }
 
     fields = [

@@ -3,7 +3,7 @@ import pymysql
 
 # Đọc Parquet
 df = pd.read_parquet(
-    r"./scripts/crawl/data/raw/yellow_tripdata_2024-03.parquet",
+    r"./data/raw/nyc_taxi/historical/yellow_tripdata_2024-03.parquet",
     engine="pyarrow"
 )
 print(f"✅ Đọc Parquet thành công, shape={df.shape}")

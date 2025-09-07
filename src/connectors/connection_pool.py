@@ -1,4 +1,5 @@
 import re
+from urllib.parse import urlparse
 from psycopg2 import pool
 from contextlib import contextmanager
 import logging
@@ -25,15 +26,20 @@ class ConnectionPoolManager:
             PipelineError: _description_
         """
         dsn  = self.postgres_config.url.replace("jdbc:", "")
+        parsed = urlparse(dsn)
+
+        host = parsed.hostname
+        port = parsed.port
+        dbname = parsed.path.lstrip("/")
         self.pool = pool.SimpleConnectionPool(
             1,  # minconn
             10, # maxconn
             dsn=dsn,
             user=self.postgres_config.user,
             password=self.postgres_config.password,
-            host=self.postgres_config.host,
-            port=self.postgres_config.port,
-            database=self.postgres_config.database,
+            host=host,
+            port=port,
+            database=dbname,
             connect_timeout=5
         )
         logger.info("Postgres connection pool initialized.")

@@ -1,9 +1,6 @@
 import logging
-from os import spawnlp 
-import kafka
 from pyspark.sql  import SparkSession 
 from src.utils.config_loader import load_config , create_app_config
-from src.utils.logging_utils import setup_logger
 from src.utils.monitoring import PipelineMetrics
 from src.utils.error_handling import PipelineError
 from src.connectors.connection_pool import ConnectionPoolManager
@@ -15,7 +12,7 @@ from src.connectors.kafka_connector import create_kafka_stream
 
 class NYCTaxiCDCJob:
     """main nyc taxi cdc  pipeline job """
-    def __init__(self , config_path: str = '/spark-jobs/config/cdc-config.yml'):
+    def __init__(self , config_path: str = 'src/config/cdc_config.yml'):
         self.config_path =  config_path
         self.config = None 
         self.spark =  None
@@ -69,7 +66,6 @@ class NYCTaxiCDCJob:
                 .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true") \
                 .config("spark.driver.extraClassPath", "/opt/bitnami/spark/jars/postgresql-42.7.3.jar") \
                 .config("spark.executor.extraClassPath", "/opt/bitnami/spark/jars/postgresql-42.7.3.jar") \
-                .config("spark.streaming.stopGracefullyOnShutdown", "true") \
                 .getOrCreate())
     
 
@@ -77,7 +73,6 @@ class NYCTaxiCDCJob:
     def run(self):
         logger=  logging.getLogger(__name__)
 
-       
 
         # Ensure self.config is initialized after calling self.initialize()
         if self.config is None:
@@ -87,4 +82,54 @@ class NYCTaxiCDCJob:
         try:
             #create schema 
             schema = create_nyc_taxi_schema(self.config.schema_nyc_taxi)
-            kafka_stream = self.kafka_connector
+            tranformed_stream = transform_kafka_data(self.kafka_connector , schema)
+
+            if self.cdc_processor is None:
+                logger.error("CDC Processor is not initialized. Exiting run method.")
+                return
+
+            query =  (
+                tranformed_stream
+                .writeStream
+                .foreachBatch(self.cdc_processor.process_cdc_operations)
+                .option("checkpointLocation" , self.config.spark.checkpoint_location)
+                .outputMode("update")
+                .start()
+            )
+
+            logger.info("cdc pipline started successfully")
+            query.awaitTermination()
+
+        except Exception as e :
+            logger.error(f'failed to run cdc pipeline :{str(e)}' , exc_info=True)
+            raise PipelineError('cdc pipeline execution failed', e )from e
+        finally:
+            self._cleanup()
+
+    def _cleanup(self):
+        logger = logging.getLogger(__name__)
+        try:
+            if self.connection_pool:
+                self.connection_pool.close_all_connections()
+                logger.info('connection pool closed')
+            if self.spark:
+                self.spark.stop()
+                logger.info("spark session stop")
+            
+
+            self.pipeline_metrics.log_summary()
+        except Exception as e:
+            logger.error(f'error during cleanup:{str(e)}' , exc_info=True)
+
+if __name__ ==  "__main__":
+    logger =  logging.getLogger(__name__)
+    job =  NYCTaxiCDCJob()
+    try:
+        job.initialize()
+        job.run()
+    except Exception as e:
+        logger.error(f'pipline failed :{str(e)}' , exc_info=True)
+        exit(1)
+
+
+        
